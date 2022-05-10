@@ -26,6 +26,7 @@
 
 #include <ctype.h>
 #include <curses.h>
+#include <time.h>
 
 /* semaphores and global variables for communication */
 
@@ -331,28 +332,6 @@ void *dashboard(void *data)
     }
 }
 
-// Gets currently pressed key
-char *get_key_pressed()
-{
-    switch (last)
-    {
-    case KEY_UP:
-        return "up";
-        break;
-    case KEY_DOWN:
-        return "down";
-        break;
-    case KEY_LEFT:
-        return "left";
-        break;
-    case KEY_RIGHT:
-        return "right";
-        break;
-    default:
-        return "none";
-    }
-}
-
 /* -------------------- Data Logging --------------------
 
     Periodically logs data to a file.
@@ -368,16 +347,84 @@ void *datalogging(void *data)
         fprintf(stderr, "Data file could not be opened");
         exit(1);
     }
+
+    // Logged variables
+    const int message_size = 500;
+    const int round_numbers = 4;
+    char *delimiter = ", ";
+
+    time_t raw_time;
+    struct tm *time_info;
+    char *current_time = "";
+
     char *key_pressed = "";
+
+    char lander_thrust[10];
+    char lander_rotation[10];
+
+    char lander_state_x[10];
+    char lander_state_y[10];
+    char lander_state_O[10];
+
+    char lander_state_dx[10];
+    char lander_state_dy[10];
+    char lander_state_dO[10];
 
     while (true)
     {
+        // Get current time
+        time(&raw_time);
+        time_info = localtime(&raw_time);
+        current_time = asctime(time_info);
+        current_time[strcspn(current_time, "\n")] = 0;
+
         // Get currently pressed key
-        key_pressed = get_key_pressed;
+        switch (last)
+        {
+        case KEY_UP:
+            key_pressed = "up";
+            break;
+        case KEY_DOWN:
+            key_pressed = "down";
+            break;
+        case KEY_LEFT:
+            key_pressed = "left";
+            break;
+        case KEY_RIGHT:
+            key_pressed = "right";
+            break;
+        default:
+            key_pressed = "none";
+        }
+
+        // Get current lander command
+        gcvt(landercommand.thrust, round_numbers, lander_thrust);
+        gcvt(landercommand.rotn, round_numbers, lander_rotation);
+
+        // Get current lander state
+        gcvt(landerstate.x, round_numbers, lander_state_x);
+        gcvt(landerstate.y, round_numbers, lander_state_y);
+        gcvt(landerstate.O, round_numbers, lander_state_O);
+
+        gcvt(landerstate.dx, round_numbers, lander_state_dx);
+        gcvt(landerstate.dy, round_numbers, lander_state_dy);
+        gcvt(landerstate.dO, round_numbers, lander_state_dO);
 
         // Build the string that will be logged
-        char *log_text = key_pressed;
-        char *delimiter = ", ";
+        char log_text[message_size];
+        int string_building_error = sprintf(log_text, "{\"%s\":[{\"key\":\"%s\",\"lander\":[{\"thrust \":\"%s\", \"rotation\":\"%s\", \"lander state\":[{\"x\":\"%s\", \"y\":\"%s\", \"O\":\"%s\", \"dx\":\"%s\", \"dy\":\"%s\", \"dO\":\"%s\"}]}]}]}",
+                                            current_time,
+                                            key_pressed,
+                                            lander_thrust,
+                                            lander_rotation,
+                                            lander_state_x,
+                                            lander_state_y,
+                                            lander_state_O,
+                                            lander_state_dx,
+                                            lander_state_dy,
+                                            lander_state_dO);
+        if (string_building_error == -1)
+            fprintf(stderr, "Failed to build data logging string");
 
         // Write into the data file
         fprintf(fileptr, "%s%s", log_text, delimiter);
