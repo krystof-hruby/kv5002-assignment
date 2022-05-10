@@ -331,20 +331,63 @@ void *dashboard(void *data)
     }
 }
 
-/*-----------------------------------------*/
+// Gets currently pressed key
+char *get_key_pressed()
+{
+    switch (last)
+    {
+    case KEY_UP:
+        return "up";
+        break;
+    case KEY_DOWN:
+        return "down";
+        break;
+    case KEY_LEFT:
+        return "left";
+        break;
+    case KEY_RIGHT:
+        return "right";
+        break;
+    default:
+        return "none";
+    }
+}
 
-/* Data Logging.
+/* -------------------- Data Logging --------------------
+
     Periodically logs data to a file.
 */
-// TODO: Task XXX, finish the datalogging part to Periodically log data to a file.
-// please call datalogging in the appropriate place.
-
 void *datalogging(void *data)
 {
+    FILE *fileptr;
+
+    // Open the data file
+    fileptr = fopen("data.csv", "w");
+    if (fileptr == NULL)
+    {
+        fprintf(stderr, "Data file could not be opened");
+        exit(1);
+    }
+    char *key_pressed = "";
 
     while (true)
     {
+        // Get currently pressed key
+        key_pressed = get_key_pressed;
+
+        // Build the string that will be logged
+        char *log_text = key_pressed;
+        char *delimiter = ", ";
+
+        // Write into the data file
+        fprintf(fileptr, "%s%s", log_text, delimiter);
+        fflush(fileptr); // Use fflush due to buffered IO
+
+        usleep(5000000); // Sleep 5 seconds -> log data each 5 seconds
     }
+
+    // Close the data file
+    fclose(fileptr);
 }
 
 /* -------------------- MAIN --------------------
@@ -353,7 +396,6 @@ Arguments:
     argv[1] -> lander
     argv[2] -> dashboard
 */
-
 int main(int argc, char *argv[])
 {
     pthread_t keyboard_thread;     // Keyboard
