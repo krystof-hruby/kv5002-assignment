@@ -429,7 +429,7 @@ void *datalogging(void *data)
 
         // Build the string that will be logged
         char log_text[message_size];
-        int string_building_error = sprintf(log_text, "{\"%s\":[{\"key\":\"%s\",\"lander\":[{\"command\":[{\"thrust \":\"%s\", \"rotation\":\"%s\"}], \"state\":[{\"x\":\"%s\", \"y\":\"%s\", \"O\":\"%s\", \"dx\":\"%s\", \"dy\":\"%s\", \"dO\":\"%s\"}], \"condition\":[{\"fuel\":\"%s\", \"altitude\":\"%s\", \"contact\":\"%s\"}]}]}]}",
+        int string_building_error = sprintf(log_text, "{\"%s\":[{\"key\":\"%s\",\"lander\":[{\"command\":[{\"thrust \":\"%s\", \"rotation\":\"%s\"}], \"state\":[{\"x\":\"%s\", \"y\":\"%s\", \"O\":\"%s\", \"dx\":\"%s\", \"dy\":\"%s\", \"dO\":\"%s\"}], \"condition\":[{\"fuel\":\"%s\", \"altitude\":\"%s\", \"contact\":%s}]}]}]}",
                                             current_time,
                                             key_pressed,
                                             lander_thrust,
