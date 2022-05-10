@@ -348,20 +348,24 @@ void *datalogging(void *data)
         exit(1);
     }
 
-    // Logged variables
+    /* - Logged variables - */
     const int message_size = 500;
     const int round_numbers = 4;
     char *delimiter = ", ";
 
+    // Time
     time_t raw_time;
     struct tm *time_info;
     char *current_time = "";
 
+    // Key pressed
     char *key_pressed = "";
 
+    // Lander command
     char lander_thrust[10];
     char lander_rotation[10];
 
+    // Lander state
     char lander_state_x[10];
     char lander_state_y[10];
     char lander_state_O[10];
@@ -369,6 +373,11 @@ void *datalogging(void *data)
     char lander_state_dx[10];
     char lander_state_dy[10];
     char lander_state_dO[10];
+
+    // Lander condition
+    char lander_condition_fuel[10];
+    char lander_condition_altitude[10];
+    char *lander_condition_contact;
 
     while (true)
     {
@@ -410,9 +419,17 @@ void *datalogging(void *data)
         gcvt(landerstate.dy, round_numbers, lander_state_dy);
         gcvt(landerstate.dO, round_numbers, lander_state_dO);
 
+        // Get current lander condition
+        gcvt(landercond.fuel, round_numbers, lander_condition_fuel);
+        gcvt(landercond.altitude, round_numbers, lander_condition_altitude);
+        if (landercond.contact)
+            lander_condition_contact = "true";
+        else
+            lander_condition_contact = "false";
+
         // Build the string that will be logged
         char log_text[message_size];
-        int string_building_error = sprintf(log_text, "{\"%s\":[{\"key\":\"%s\",\"lander\":[{\"thrust \":\"%s\", \"rotation\":\"%s\", \"lander state\":[{\"x\":\"%s\", \"y\":\"%s\", \"O\":\"%s\", \"dx\":\"%s\", \"dy\":\"%s\", \"dO\":\"%s\"}]}]}]}",
+        int string_building_error = sprintf(log_text, "{\"%s\":[{\"key\":\"%s\",\"lander\":[{\"command\":[{\"thrust \":\"%s\", \"rotation\":\"%s\"}], \"state\":[{\"x\":\"%s\", \"y\":\"%s\", \"O\":\"%s\", \"dx\":\"%s\", \"dy\":\"%s\", \"dO\":\"%s\"}], \"condition\":[{\"fuel\":\"%s\", \"altitude\":\"%s\", \"contact\":\"%s\"}]}]}]}",
                                             current_time,
                                             key_pressed,
                                             lander_thrust,
@@ -422,7 +439,10 @@ void *datalogging(void *data)
                                             lander_state_O,
                                             lander_state_dx,
                                             lander_state_dy,
-                                            lander_state_dO);
+                                            lander_state_dO,
+                                            lander_condition_fuel,
+                                            lander_condition_altitude,
+                                            lander_condition_contact);
         if (string_building_error == -1)
             fprintf(stderr, "Failed to build data logging string");
 
