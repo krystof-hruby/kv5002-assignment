@@ -341,10 +341,10 @@ void *datalogging(void *data)
     FILE *fileptr;
 
     // Open the data file
-    fileptr = fopen("data.csv", "w");
+    fileptr = fopen("log.csv", "w");
     if (fileptr == NULL)
     {
-        fprintf(stderr, "Data file could not be opened");
+        fprintf(stderr, "Log file could not be opened or created");
         exit(1);
     }
 
