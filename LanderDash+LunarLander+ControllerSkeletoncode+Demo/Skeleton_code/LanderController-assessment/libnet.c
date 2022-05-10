@@ -21,10 +21,11 @@
 int getaddr(const char *node, const char *service,
             struct addrinfo **address)
 {
-    struct addrinfo hints = {
-        .ai_flags = 0,
-        .ai_family = AF_INET,
-        .ai_socktype = SOCK_DGRAM};
+    struct addrinfo hints =
+        {
+            .ai_flags = 0,
+            .ai_family = AF_INET,
+            .ai_socktype = SOCK_DGRAM};
 
     if (node)
         hints.ai_flags = AI_ADDRCONFIG;
@@ -33,11 +34,13 @@ int getaddr(const char *node, const char *service,
 
     // TODO: Task XXX, hint: use getaddrinfo to check if address is available or not
 
-    struct addrinfo *results;
-    int addr_error = getaddrinfo(node, service, &hints, &results);
+    int addr_error = getaddrinfo(node, service, &hints, address);
 
-    if (!addr_error)
+    if (addr_error)
+    {
+        fprintf(stderr, "Error trying to get address %s\n", gai_strerror(addr_error));
         return false;
+    }
 
     return true;
 
@@ -48,12 +51,12 @@ int mksocket(void)
 {
     // TODO: Task XXX, hint:  creates an endpoint for communication using the socket function
 
-    int socketfd = socket(AF_INET, SOCK_STREAM, 0);
+    int socketfd = socket(AF_INET, SOCK_DGRAM, 0);
 
     if (socketfd == -1)
     {
-        printf("Error creating socket\n");
-        exit(EXIT_FAILURE);
+        fprintf(stderr, "Error creating socket: %s\n", strerror(errno));
+        return 0;
     }
     return socketfd;
 

@@ -265,7 +265,7 @@ void *lander(void *data)
     // TODO: fix the getaddr and mksocket methods in libnet.c and
     //  use them get the address and open the socket
     if (!getaddr("127.0.1.1", (char *)data, &landr))
-        fprintf(stderr, "can't get lander address");
+        fprintf(stderr, "Can't get lander address\n");
     ;
     l = mksocket();
 
@@ -383,12 +383,12 @@ int main(int argc, char *argv[])
     if ((e = pthread_create(&kscan, NULL, keyboard, NULL)))
         fprintf(stderr, "not cheated keybord thread: %s\n", strerror(e));
 
-    if ((e = pthread_create(&lndr, NULL, lander, argv[2])))
+    if ((e = pthread_create(&lndr, NULL, lander, argv[1])))
         fprintf(stderr, "not created lander thread: %s\n", strerror(e));
 
     // TODO: Task XXX create one thread for dashboard with the function pthread_create
 
-    if ((e = pthread_create(&dash, NULL, dashboard, argv[1])))
+    if ((e = pthread_create(&dash, NULL, dashboard, argv[2])))
         fprintf(stderr, "not created dashboard thread: %s\n", strerror(e));
 
     // END
