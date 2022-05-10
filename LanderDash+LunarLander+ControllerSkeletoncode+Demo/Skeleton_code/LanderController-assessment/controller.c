@@ -328,7 +328,7 @@ void *dashboard(void *data)
 
         // TODO: Task XXX, send the buffer to the dashboard by using sendto method
 
-        sendto();
+        sendto(d, buffer, strlen(buffer), 0, daddr->ai_addr, daddr->ai_addrlen);
 
         // END
 
