@@ -352,46 +352,52 @@ void *datalogging(void *data)
     }
 }
 
-/*-----------------------------------------*/
+/* -------------------- MAIN --------------------
 
-/* Entry point for program.
-    arguments are the (local) port numbers for
-    the lander and the dashboard
+Arguments:
+    argv[1] -> lander
+    argv[2] -> dashboard
 */
+
 int main(int argc, char *argv[])
 {
-    pthread_t kscan; /* keyboard */
-    pthread_t dsply; /* display */
-    pthread_t lndr;  /* lander comms */
-    pthread_t dash;  /* dashboard */
+    pthread_t keyboard_thread;     // keyboard
+    pthread_t display_thread;      // display
+    pthread_t lander_thread;       // lander
+    pthread_t dashboard_thread;    // dashboard
+    pthread_t data_logging_thread; // data logging
 
-    int e;
+    int thread_error;
 
-    /* initialise semaphores */
+    // Initialize semaphores
     sem_init(&condlock, 0, 1);
     sem_init(&statelock, 0, 1);
     sem_init(&cmdlock, 0, 1);
 
-    /* initialise and start display */
+    // Initialize the console display
     console_init();
 
-    /* Start Threads .... */
+    // --- Create threads ---
 
-    if ((e = pthread_create(&dsply, NULL, display, NULL)))
-        fprintf(stderr, "not created display thread: %s\n", strerror(e));
+    // Display thread
+    if ((thread_error = pthread_create(&display_thread, NULL, display, NULL)))
+        fprintf(stderr, "Failed creating display thread: %s\n", strerror(thread_error));
 
-    if ((e = pthread_create(&kscan, NULL, keyboard, NULL)))
-        fprintf(stderr, "not cheated keybord thread: %s\n", strerror(e));
+    // Keyboard thread
+    if ((thread_error = pthread_create(&keyboard_thread, NULL, keyboard, NULL)))
+        fprintf(stderr, "Failed creating keyboard thread: %s\n", strerror(thread_error));
 
-    if ((e = pthread_create(&lndr, NULL, lander, argv[1])))
-        fprintf(stderr, "not created lander thread: %s\n", strerror(e));
+    // Lander thread
+    if ((thread_error = pthread_create(&lander_thread, NULL, lander, argv[1])))
+        fprintf(stderr, "Failed creating lander thread: %s\n", strerror(thread_error));
 
-    // TODO: Task XXX create one thread for dashboard with the function pthread_create
+    // Dashboard thread
+    if ((thread_error = pthread_create(&dashboard_thread, NULL, dashboard, argv[2])))
+        fprintf(stderr, "Failed creating dashboard thread: %s\n", strerror(thread_error));
 
-    if ((e = pthread_create(&dash, NULL, dashboard, argv[2])))
-        fprintf(stderr, "not created dashboard thread: %s\n", strerror(e));
+    // Data logging thread
+    if ((thread_error = pthread_create(&data_logging_thread, NULL, datalogging, NULL)))
+        fprintf(stderr, "Failed creating data logging thread: %s\n", strerror(thread_error));
 
-    // END
-
-    pthread_join(dsply, NULL);
+    pthread_join(display_thread, NULL);
 }

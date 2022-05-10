@@ -18,6 +18,8 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 
+// Gets address info
+// Returns false if address info not found
 int getaddr(const char *node, const char *service,
             struct addrinfo **address)
 {
@@ -32,8 +34,6 @@ int getaddr(const char *node, const char *service,
     else
         hints.ai_flags = AI_PASSIVE;
 
-    // TODO: Task XXX, hint: use getaddrinfo to check if address is available or not
-
     int addr_error = getaddrinfo(node, service, &hints, address);
 
     if (addr_error)
@@ -43,14 +43,11 @@ int getaddr(const char *node, const char *service,
     }
 
     return true;
-
-    // END
 }
 
+// Creates an endpoint for communication using a socket
 int mksocket(void)
 {
-    // TODO: Task XXX, hint:  creates an endpoint for communication using the socket function
-
     int socketfd = socket(AF_INET, SOCK_DGRAM, 0);
 
     if (socketfd == -1)
@@ -59,13 +56,13 @@ int mksocket(void)
         return 0;
     }
     return socketfd;
-
-    // END
 }
 
+// Binds socket
 int bindsocket(int sfd, const struct sockaddr *addr, socklen_t addrlen)
 {
     int err = bind(sfd, addr, addrlen);
+
     if (err == -1)
     {
         fprintf(stderr, "error binding socket: %s\n", strerror(errno));
@@ -82,8 +79,11 @@ char *addrtouri(struct sockaddr *addr)
     return uri;
 }
 
-typedef size_t (*handler_t)(char *, size_t,
-                            char *, size_t, struct sockaddr_in *);
+typedef size_t (*handler_t)(
+    char *,
+    size_t,
+    char *, size_t,
+    struct sockaddr_in *);
 
 int server(int srvrsock, handler_t handlemsg)
 {
@@ -100,8 +100,8 @@ int server(int srvrsock, handler_t handlemsg)
                            buffsize,    /* size of receiving buffer */
                            0,           /* flags */
                            &clientaddr, /* fill in with address of client */
-                           &addrlen     /* number of bytes filled in */
-        );
+                           &addrlen);   /* number of bytes filled in */
+
         replysize = handlemsg(message,  /* incoming message */
                               msgsize,  /* incoming message size */
                               reply,    /* buffer for reply */
