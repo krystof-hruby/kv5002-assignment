@@ -275,12 +275,8 @@ void *lander(void *data)
         /* poll for condition */
         sendto(l, conditionq, strlen(conditionq), 0, landr->ai_addr,
                landr->ai_addrlen);
-        if (m == -1)
-            fprinf(stderr, "Error sending message: %s\n", strerror(errno));
 
         m = recvfrom(l, msgbuf, msgsize, 0, NULL, NULL);
-        if (m == -1)
-            fprinf(stderr, "Error receiving message: %s\n", strerror(errno));
         msgbuf[m] = '\0';
 
         /* parse condition */
@@ -289,12 +285,8 @@ void *lander(void *data)
         /* poll for state */
         sendto(l, stateq, strlen(stateq), 0, landr->ai_addr,
                landr->ai_addrlen);
-        if (m == -1)
-            fprinf(stderr, "Error sending message: %s\n", strerror(errno));
 
         m = recvfrom(l, msgbuf, msgsize, 0, NULL, NULL);
-        if (m == -1)
-            fprinf(stderr, "Error receiving message: %s\n", strerror(errno));
         msgbuf[m] = '\0';
         parsestate(msgbuf);
 
@@ -305,11 +297,7 @@ void *lander(void *data)
                 "rcs-roll: %f\n",
                 landercommand.thrust, landercommand.rotn);
         sendto(l, msgbuf, strlen(msgbuf), 0, landr->ai_addr, landr->ai_addrlen);
-        if (m == -1)
-            fprinf(stderr, "Error sending message: %s\n", strerror(errno));
         m = recvfrom(l, msgbuf, msgsize, 0, NULL, NULL);
-        if (m == -1)
-            fprinf(stderr, "Error receiving message: %s\n", strerror(errno));
         msgbuf[m] = '\0';
 
         usleep(100000);
@@ -342,8 +330,6 @@ void *dashboard(void *data)
 
         // Send buffer with the message to the dashboard through socket
         sendto(d, buffer, strlen(buffer), 0, daddr->ai_addr, daddr->ai_addrlen);
-        if (m == -1)
-            fprinf(stderr, "Error sending message: %s\n", strerror(errno));
 
         usleep(500000);
     }
