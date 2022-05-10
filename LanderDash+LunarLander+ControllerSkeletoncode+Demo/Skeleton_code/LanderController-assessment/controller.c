@@ -57,11 +57,10 @@ struct condition
 } landercond;
 sem_t condlock;
 
-/*** There are five threads defined for the controller ***/
+/* -------------------- Keyboard Input --------------------
 
-/* Keyboard scanning routine
-    Runs in own thread, interprets user input.
-    Generates command structures for transmission to lander.
+    Runs in own thread, interprets user input
+    Generates command structures for transmission to lander
 */
 int last;
 void *keyboard(void *data)
@@ -105,10 +104,9 @@ void *keyboard(void *data)
     }
 }
 
-/*-----------------------------------------*/
+/* -------------------- Display Management --------------------
 
-/* Display management -- threaded
-    Updates display with diagnostic information
+    Updates the display with lander diagnostic information
 */
 void *display(void *data)
 {
@@ -168,10 +166,7 @@ void *display(void *data)
     }
 }
 
-/*-----------------------------------------*/
-
-/* Parse condition reply message
- */
+// --- Parse condition reply message --
 void parsecondition(char *m)
 {
     char *line;
@@ -208,7 +203,7 @@ void parsecondition(char *m)
     }
 }
 
-/* Parse state message */
+// --- Parse state message ---
 void parsestate(char *m)
 {
     char *line;
@@ -245,12 +240,14 @@ void parsestate(char *m)
     }
 }
 
-/* Lander Communications.
-    Communicates with the lander model,
-    Sends commands and queries state,
+/* -------------------- Lander communication --------------------
+
+    Communicates with the lander model
+    Sends commands and queries state
     Parses and decodes messages
 
-    Data passed is port number to use.
+    Arguments:
+        data -> port number
 */
 void *lander(void *data)
 {
@@ -262,8 +259,7 @@ void *lander(void *data)
     const char conditionq[] = "condition:?\n";
     const char stateq[] = "state:?\n";
 
-    // TODO: fix the getaddr and mksocket methods in libnet.c and
-    //  use them get the address and open the socket
+    // Get address and open a socket
     if (!getaddr("127.0.1.1", (char *)data, &landr))
         fprintf(stderr, "Can't get lander address\n");
     ;
@@ -305,10 +301,9 @@ void *lander(void *data)
     }
 }
 
-/*-----------------------------------------*/
+/* -------------------- Dashboard communication --------------------
 
-/* Dashboard Communications.
-    Formats and sends data messages to the dashboard.
+    Formats and sends data messages to the dashboard
 */
 void *dashboard(void *data)
 {
@@ -317,20 +312,20 @@ void *dashboard(void *data)
     int d;
     struct addrinfo *daddr;
 
+    // Get address and open a socket
     if (!getaddr("127.0.1.1", (char *)data, &daddr))
-        fprintf(stderr, "cant get dash address");
+        fprintf(stderr, "Canott get dashboard address");
     d = mksocket();
 
     while (true)
     {
-        // TODO: Task XXX, construct buffer array with the sprintf methond with the following format
-        // "fuel:%f\naltitude:%f\n", landercond.fuel, landercond.altitude
+        int buffer_error = sprintf(buffer, "fuel:%f\naltitude:%f\n", landercond.fuel, landercond.altitude);
 
-        // TODO: Task XXX, send the buffer to the dashboard by using sendto method
+        if (buffer_error == -1)
+            fprintf(stderr, "Error creating buffer array");
 
+        // Send buffer with the message to the dashboard through socket
         sendto(d, buffer, strlen(buffer), 0, daddr->ai_addr, daddr->ai_addrlen);
-
-        // END
 
         usleep(500000);
     }
@@ -361,11 +356,11 @@ Arguments:
 
 int main(int argc, char *argv[])
 {
-    pthread_t keyboard_thread;     // keyboard
-    pthread_t display_thread;      // display
-    pthread_t lander_thread;       // lander
-    pthread_t dashboard_thread;    // dashboard
-    pthread_t data_logging_thread; // data logging
+    pthread_t keyboard_thread;     // Keyboard
+    pthread_t display_thread;      // Display
+    pthread_t lander_thread;       // Lander
+    pthread_t dashboard_thread;    // Dashboard
+    pthread_t data_logging_thread; // Data logging
 
     int thread_error;
 

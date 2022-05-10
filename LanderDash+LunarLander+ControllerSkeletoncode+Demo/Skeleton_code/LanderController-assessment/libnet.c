@@ -58,7 +58,7 @@ int mksocket(void)
     return socketfd;
 }
 
-// Binds socket
+// Binds socket to and address
 int bindsocket(int sfd, const struct sockaddr *addr, socklen_t addrlen)
 {
     int err = bind(sfd, addr, addrlen);
@@ -71,6 +71,7 @@ int bindsocket(int sfd, const struct sockaddr *addr, socklen_t addrlen)
     return true;
 }
 
+// Converts data from addr to URI host:port notation
 char uri[80];
 char *addrtouri(struct sockaddr *addr)
 {
@@ -85,6 +86,7 @@ typedef size_t (*handler_t)(
     char *, size_t,
     struct sockaddr_in *);
 
+// Handles the server
 int server(int srvrsock, handler_t handlemsg)
 {
     const size_t buffsize = 4096; /* 4k */
@@ -95,36 +97,42 @@ int server(int srvrsock, handler_t handlemsg)
 
     while (true)
     {
-        msgsize = recvfrom(srvrsock,    /* server socket listening on */
-                           message,     /* buffer to put message */
-                           buffsize,    /* size of receiving buffer */
-                           0,           /* flags */
-                           &clientaddr, /* fill in with address of client */
-                           &addrlen);   /* number of bytes filled in */
+        // Receive message through socket
+        msgsize = recvfrom(
+            srvrsock,    /* server socket listening on */
+            message,     /* buffer to put message */
+            buffsize,    /* size of receiving buffer */
+            0,           /* flags */
+            &clientaddr, /* fill in with address of client */
+            &addrlen);   /* number of bytes filled in */
 
-        replysize = handlemsg(message,  /* incoming message */
-                              msgsize,  /* incoming message size */
-                              reply,    /* buffer for reply */
-                              buffsize, /* size of outgoing buffer */
-                              (struct sockaddr_in *)&clientaddr);
+        replysize = handlemsg(
+            message,  /* incoming message */
+            msgsize,  /* incoming message size */
+            reply,    /* buffer for reply */
+            buffsize, /* size of outgoing buffer */
+            (struct sockaddr_in *)&clientaddr);
+
         if (replysize)
-            sendto(srvrsock,    /* server socket to use */
-                   reply,       /* outgoing message to send */
-                   replysize,   /* size of message */
-                   0,           /* flags */
-                   &clientaddr, /* address to send to */
-                   addrlen      /* size of address structure */
-            );
+            // Send message through socket to an address
+            sendto(
+                srvrsock,    /* server socket to use */
+                reply,       /* outgoing message to send */
+                replysize,   /* size of message */
+                0,           /* flags */
+                &clientaddr, /* address to send to */
+                addrlen);    /* size of address structure */
     }
 }
-
-int cleanupsock;
 
 void finished(int signal)
 {
     exit(0);
 }
 
+int cleanupsock;
+
+// Closes the socket
 void cleanup(void)
 {
     close(cleanupsock);
