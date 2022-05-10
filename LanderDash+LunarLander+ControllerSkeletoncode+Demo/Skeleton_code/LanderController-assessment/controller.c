@@ -383,12 +383,12 @@ int main(int argc, char *argv[])
     if ((e = pthread_create(&kscan, NULL, keyboard, NULL)))
         fprintf(stderr, "not cheated keybord thread: %s\n", strerror(e));
 
-    if ((e = pthread_create(&lndr, NULL, lander, argv[1])))
+    if ((e = pthread_create(&lndr, NULL, lander, argv[2])))
         fprintf(stderr, "not created lander thread: %s\n", strerror(e));
 
     // TODO: Task XXX create one thread for dashboard with the function pthread_create
 
-    if ((e = pthread_create(&dash, NULL, dashboard, argv[0])))
+    if ((e = pthread_create(&dash, NULL, dashboard, argv[1])))
         fprintf(stderr, "not created dashboard thread: %s\n", strerror(e));
 
     // END

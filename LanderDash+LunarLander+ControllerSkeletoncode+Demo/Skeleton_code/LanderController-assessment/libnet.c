@@ -36,10 +36,10 @@ int getaddr(const char *node, const char *service,
     struct addrinfo *results;
     int addr_error = getaddrinfo(node, service, &hints, &results);
 
-    if (addr_error)
+    if (!addr_error)
         return false;
-    else
-        return true;
+
+    return true;
 
     // END
 }
@@ -52,7 +52,7 @@ int mksocket(void)
 
     if (socketfd == -1)
     {
-        printf("Error creating socket");
+        printf("Error creating socket\n");
         exit(EXIT_FAILURE);
     }
     return socketfd;
