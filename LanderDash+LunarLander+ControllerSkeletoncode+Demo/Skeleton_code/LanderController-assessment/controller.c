@@ -351,7 +351,7 @@ void *datalogging(void *data)
     /* - Logged variables - */
     const int message_size = 500;
     const int round_numbers = 4;
-    char *delimiter = ", ";
+    char *delimiter = ",";
 
     // Time
     time_t raw_time;
