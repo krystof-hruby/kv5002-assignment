@@ -266,19 +266,26 @@ void *lander(void *data)
     if (!getaddr("127.0.1.1", (char *)data, &landr))
         fprintf(stderr, "Can't get lander address\n");
     ;
+
     l = mksocket();
+
+    // Connect to the server with TCP
+    if (connect(l, landr->ai_addr, landr->ai_addrlen) == -1)
+    {
+        fprinf(stderr, "Could not connect to the server\n");
+        exit(1);
+    }
 
     while (true)
     {
         int m;
         usleep(50000); /* 20Hz = 0.05s = 50ms = 50000us */
         /* poll for condition */
-        sendto(l, conditionq, strlen(conditionq), 0, landr->ai_addr,
-               landr->ai_addrlen);
+        int sent = send(l, conditionq, strlen(conditionq), 0);
         if (m == -1)
             fprinf(stderr, "Error sending message: %s\n", strerror(errno));
 
-        m = recvfrom(l, msgbuf, msgsize, 0, NULL, NULL);
+        m = recv(l, msgbuf, msgsize, 0);
         if (m == -1)
             fprinf(stderr, "Error receiving message: %s\n", strerror(errno));
         msgbuf[m] = '\0';
@@ -287,12 +294,11 @@ void *lander(void *data)
         parsecondition(msgbuf);
 
         /* poll for state */
-        sendto(l, stateq, strlen(stateq), 0, landr->ai_addr,
-               landr->ai_addrlen);
+        sent = send(l, stateq, strlen(stateq), 0);
         if (m == -1)
             fprinf(stderr, "Error sending message: %s\n", strerror(errno));
 
-        m = recvfrom(l, msgbuf, msgsize, 0, NULL, NULL);
+        m = recv(l, msgbuf, msgsize, 0);
         if (m == -1)
             fprinf(stderr, "Error receiving message: %s\n", strerror(errno));
         msgbuf[m] = '\0';
@@ -304,10 +310,10 @@ void *lander(void *data)
                 "main-engine: %f\n"
                 "rcs-roll: %f\n",
                 landercommand.thrust, landercommand.rotn);
-        sendto(l, msgbuf, strlen(msgbuf), 0, landr->ai_addr, landr->ai_addrlen);
+        sendto(l, msgbuf, strlen(msgbuf), 0);
         if (m == -1)
             fprinf(stderr, "Error sending message: %s\n", strerror(errno));
-        m = recvfrom(l, msgbuf, msgsize, 0, NULL, NULL);
+        m = recv(l, msgbuf, msgsize, 0);
         if (m == -1)
             fprinf(stderr, "Error receiving message: %s\n", strerror(errno));
         msgbuf[m] = '\0';
@@ -333,6 +339,13 @@ void *dashboard(void *data)
 
     d = mksocket();
 
+    // Connect to the server with TCP
+    if (connect(d, dadddr->ai_addr, dadddr->ai_addrlen) == -1)
+    {
+        fprinf(stderr, "Could not connect to the server\n");
+        exit(1);
+    }
+
     while (true)
     {
         int buffer_error = sprintf(buffer, "fuel:%f\naltitude:%f\n", landercond.fuel, landercond.altitude);
@@ -341,7 +354,7 @@ void *dashboard(void *data)
             fprintf(stderr, "Error creating buffer array");
 
         // Send buffer with the message to the dashboard through socket
-        sendto(d, buffer, strlen(buffer), 0, daddr->ai_addr, daddr->ai_addrlen);
+        send(d, buffer, strlen(buffer), 0);
         if (m == -1)
             fprinf(stderr, "Error sending message: %s\n", strerror(errno));
 

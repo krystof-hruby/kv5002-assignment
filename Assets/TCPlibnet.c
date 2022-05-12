@@ -27,7 +27,7 @@ int getaddr(const char *node, const char *service,
         {
             .ai_flags = 0,
             .ai_family = AF_INET,
-            .ai_socktype = SOCK_DGRAM};
+            .ai_socktype = SOCK_STREAM};
 
     if (node)
         hints.ai_flags = AI_ADDRCONFIG;
@@ -48,7 +48,7 @@ int getaddr(const char *node, const char *service,
 // Creates an endpoint for communication using a socket
 int mksocket(void)
 {
-    int socketfd = socket(AF_INET, SOCK_DGRAM, 0);
+    int socketfd = socket(AF_INET, SOCK_STREAM, 0);
 
     if (socketfd == -1)
     {
