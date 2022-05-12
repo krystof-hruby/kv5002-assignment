@@ -1,9 +1,3 @@
-/* Network and UDP handling library
- * KV5002
- *
- * Dr Alun Moon
- */
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>

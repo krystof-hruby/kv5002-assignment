@@ -1,9 +1,3 @@
-/* Sample solution for the LunarLander assignment
- * KV5002
- *
- * Dr Alun Moon
- */
-
 #include <stdio.h>
 #include <unistd.h>
 #include <stdlib.h>
