@@ -95,16 +95,66 @@ int server(int srvrsock, handler_t handlemsg)
     struct sockaddr clientaddr;
     socklen_t addrlen = sizeof(clientaddr);
 
+    struct addrinfo hints;
+    struct addrinfo *results;
+    int addr_error;
+
+    hints.ai_family = AF_INET;
+    hints.ai_protocol = 0;
+    hints.ai_socktype = SOCK_STREAM;
+    hints.ai_flags = AI_PASSIVE;
+
+    char port_number_string[10];
+
+    // Get addrinfo
+    addr_error = getaddrinfo(NULL, port_number_string, &hints, &results);
+    if (addr_error == -1)
+    {
+        fprintf(stderr, "Error trying to get address %s\n", gai_strerror(addr_error));
+        return 1;
+    }
+
+    // Create a socket
+    int listen_sock;
+    if ((listen_sock = socket(AF_INET, SOCK_STREAM, 0)) < 0)
+    {
+        fprintf(stderr, "Could not create socket: %s\n", strerror(errno));
+        return 1;
+    }
+
+    // Bind a socket
+    if ((bind(listen_sock, results->ai_addr, results->ai_addrlen)))
+    {
+        fprinf(stderr, "Could not bind socket\n");
+        return 1;
+    }
+
+    // Listen to clients
+    int wait_size = 16; // Maximum number of clients before dropping
+    if (listen(listen_sock, wait_size) < 0)
+    {
+        fprintf(stderr, "Could not open socket for listening\n");
+        return 1;
+    }
+
     while (true)
     {
+        // Accept a communication channel
+        int sock;
+        if ((sock = accept(listen_sock, (struct sockaddr *)&clientaddr, &addrlen)) < 0)
+        {
+            fprintf(stderr, "Could not open socket to accept data\n");
+            return 1;
+        }
+
         // Receive message through socket
-        msgsize = recvfrom(
-            srvrsock,    /* server socket listening on */
-            message,     /* buffer to put message */
-            buffsize,    /* size of receiving buffer */
-            0,           /* flags */
-            &clientaddr, /* fill in with address of client */
-            &addrlen);   /* number of bytes filled in */
+        msgsize = recv(
+            srvrsock, /* server socket listening on */
+            message,  /* buffer to put message */
+            buffsize, /* size of receiving buffer */
+            0);       /* flags */
+        if (msgsize == -1)
+            fprinf(stderr, "Error receiving message: %s\n", strerror(errno));
 
         replysize = handlemsg(
             message,  /* incoming message */
@@ -115,16 +165,18 @@ int server(int srvrsock, handler_t handlemsg)
 
         if (replysize)
         {
-            // Send message through socket to an address
-            sendto(
-                srvrsock,    /* server socket to use */
-                reply,       /* outgoing message to send */
-                replysize,   /* size of message */
-                0,           /* flags */
-                &clientaddr, /* address to send to */
-                addrlen);    /* size of address structure */
+            // Send message through socket
+            m = send(
+                srvrsock,  /* server socket to use */
+                reply,     /* outgoing message to send */
+                replysize, /* size of message */
+                0);        /* flags */
+            if (m == -1)
+                fprinf(stderr, "Error sending message: %s\n", strerror(errno));
         }
     }
+
+    cleanup();
 }
 
 void finished(int signal)
